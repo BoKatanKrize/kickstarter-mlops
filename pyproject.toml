@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "kickstarter-mlops"
+version = "0.1.0"
+description = "Prediction of success in Kickstarter projects. Final MLOps zoomcamp project"
+authors = ["Javier Garcia Bautista <M3cHr3p71l@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/BoKatanKrize/kickstarter-mlops.git"
+packages = [
+    { include = "data", from = "src" },
+    { include = "features", from = "src" },
+    { include = "models", from = "src" },
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
