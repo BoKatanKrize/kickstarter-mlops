@@ -55,18 +55,18 @@ def main(params):
     # Adds the 'best' alias to the most performant models
     select_best_models_from_sweep(params['n_best'])
     best_models = download_best_models(info_pipe['path_local_in'])
-
-    logger.info(f'Evaluating performance best models on test set...')
+    #
+    # logger.info(f'Evaluating performance best models on test set...')
     best_model = evaluate(X, y, best_models)
-
+    #
     logger.info(f'Promoting best model to Model Registry...')
-    promote_model_to_registry(run, best_model)
-
+    promote_model_to_registry(best_model)
+    #
     logger.info(f'Saving best model locally...')
     info_pipe = save_pipe(best_model['model'],
                           info_pipe, suffix=best_model['id'])
-
-    logger.info(f'Saving best model in S3 Bucket (LocalStack)...')
+    #
+    # logger.info(f'Saving best model in S3 Bucket (LocalStack)...')
     save_to_s3_bucket(params["s3_bucket_name"],
                       info_pipe=info_pipe)
 

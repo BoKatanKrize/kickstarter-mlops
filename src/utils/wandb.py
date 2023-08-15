@@ -121,12 +121,13 @@ def download_best_models(path):
     return best_models
 
 
-def promote_model_to_registry(run, model):
+def promote_model_to_registry(model):
 
     load_dotenv(find_dotenv())
     WANDB_PROJECT = os.environ["WANDB_PROJECT"]
     WANDB_ENTITY = os.environ["WANDB_ENTITY"]
-    model_artifact = run.use_artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:latest')
+    api = wandb.Api()
+    model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
     model_artifact.link(f'{WANDB_ENTITY}/model-registry/model_{model["id"]}',
                         aliases=['staging'])
     wandb.log({'roc_auc': model['auc']})
