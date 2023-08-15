@@ -12,11 +12,11 @@ from prefect.task_runners import SequentialTaskRunner
 # ----- #
 # Tasks #
 # ----- #
-task_downloader = task(downloader, name = "Data Downloading",log_prints=True)
-task_cleaner = task(cleaner, name = "Data Cleaning",log_prints=True)
-task_build_features = task(build_features, name = "Feature Engineering",log_prints=True)
-task_train = task(train, name = "Model Training",log_prints=True)
-task_register_model = task(register_model, name = "Promoting Model to Registry",log_prints=True)
+task_downloader = task(downloader, name = "Data Downloading")
+task_cleaner = task(cleaner, name = "Data Cleaning")
+task_build_features = task(build_features, name = "Feature Engineering")
+task_train = task(train, name = "Model Training")
+task_register_model = task(register_model, name = "Promoting Model to Registry")
 
 # ----- #
 # Flow  #
@@ -38,8 +38,8 @@ def train_flow():
     task_build_features()
     logger.info("Model training by HPO (W&B Sweep)")
     task_train()
-    #logger.info("Promoting best model to Model Registry")
-    #task_register_model()
+    logger.info("Promoting best model to Model Registry")
+    task_register_model()
 
 # def main(params):
 # """Creates a flow deployment in Prefect Cloud for 'train_flow'"""
