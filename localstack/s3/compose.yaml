@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack
+    network_mode: bridge
+    ports:
+      - 4566:4566 # All servics will now go through the same port.
+    environment:
+      - SERVICES=s3
+      - DATA_DIR=/tmp/localstack/data # This is the where the data will be stored/saved, inside the docker instance
+    volumes:
+      - "localstack-vol:/tmp/localstack"
+
+volumes:
+  localstack-vol:
