@@ -62,6 +62,8 @@ def main(params):
     logger.info(f'Promoting best model to Model Registry...')
     promote_model_to_registry(best_model)
     #
+    wandb.finish()
+
     logger.info(f'Saving best model locally...')
     info_pipe = save_pipe(best_model['model'],
                           info_pipe, suffix=best_model['id'])
@@ -69,8 +71,6 @@ def main(params):
     # logger.info(f'Saving best model in S3 Bucket (LocalStack)...')
     save_to_s3_bucket(params["s3_bucket_name"],
                       info_pipe=info_pipe)
-
-    wandb.finish()
 
 
 def wrapper_poetry():

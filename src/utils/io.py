@@ -1,6 +1,6 @@
 import re
 import glob
-import joblib
+import pickle
 import pandas as pd
 
 
@@ -26,7 +26,9 @@ def save_data(df, info_data,
 def save_pipe(pipe, info_pipe, suffix=None):
     pre = info_pipe["prefix_name"]
     pipe_name = f'{pre}.pkl' if suffix is None else f'{pre}_{suffix}.pkl'
-    joblib.dump(pipe, f'{info_pipe["path_local_out"]}/{pipe_name}')
+    output_file_path = f'{info_pipe["path_local_out"]}/{pipe_name}.pkl'
+    with open(output_file_path, 'wb') as output_file:
+        pickle.dump(pipe, output_file)
     if info_pipe["fnames"] is None:
         info_pipe["fnames"] = [pipe_name]
     else:
