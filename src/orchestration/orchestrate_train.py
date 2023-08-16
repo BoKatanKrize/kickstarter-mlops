@@ -23,7 +23,7 @@ task_register_model = task(register_model, name = "Promoting Model to Registry")
 # ----- #
 @flow(
       name="Data Preprocessing, Model Training and ",
-#      task_runner=SequentialTaskRunner()
+      task_runner=SequentialTaskRunner()
 )
 def train_flow():
     """Prefect flow for orchestrating the experiment tracking and model registry,
@@ -45,16 +45,16 @@ def train_flow():
 # """Creates a flow deployment in Prefect Cloud for 'train_flow'"""
 #
 
-def wrapper_poetry():
-
-    params = gather_orchestrate_train(standalone_mode=False)
-
-    #load_dotenv(find_dotenv())
-
-    train_flow()
-
-    #main(params)
-
-
-if __name__ == '__main__':
-    wrapper_poetry()
+# def wrapper_poetry():
+#
+#     params = gather_orchestrate_train(standalone_mode=False)
+#
+#     #load_dotenv(find_dotenv())
+#
+#     train_flow()
+#
+#     #main(params)
+#
+#
+# if __name__ == '__main__':
+#     wrapper_poetry()
