@@ -8,7 +8,7 @@ from utils.wandb import init_wandb_run, download_wandb_artifact, \
                         select_best_models_from_sweep, \
                         download_best_models, \
                         promote_model_to_registry
-from utils.io import load_data, save_pipe, save_model
+from utils.io import load_data, save_pipe
 from utils.aws_s3 import save_to_s3_bucket
 from .train import prepare_data
 
@@ -66,13 +66,8 @@ def main(params):
 
     logger.info(f'Saving best model locally...')
 
-    # Here PREFECT has a bug and will not save in tmp/ (works out of orchestration)
-    # ----------------------------------------------------------------------------
-    # info_pipe = save_pipe(best_model['model'],
-    #                       info_pipe, suffix=best_model['id'])
-
-    # Instead best model is only saved to S3 bucket
-    info_pipe = save_model(info_pipe, suffix=best_model['id'])
+    info_pipe = save_pipe(best_model['model'],
+                          info_pipe, suffix=best_model['id'])
 
     logger.info(f'Saving best model in S3 Bucket (LocalStack)...')
     save_to_s3_bucket(params["s3_bucket_name"],
