@@ -26,6 +26,7 @@ def evaluate(X, y, models):
             best_auc = roc_auc
             best_key = key
             best_model = model
+    print({'id': best_key, 'model': best_model, 'auc': best_auc})
     return {'id': best_key, 'model': best_model, 'auc': best_auc}
 
 

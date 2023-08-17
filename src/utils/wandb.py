@@ -1,6 +1,5 @@
 import os
 import wandb
-# import joblib
 import pickle
 from dotenv import find_dotenv, load_dotenv
 
@@ -100,6 +99,7 @@ def select_best_models_from_sweep(n_best):
     for m in sorted_models[:n_best]:
         model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{m["run_id"]}:latest')
         model_artifact.aliases.append('best')
+        print(f'MODEL model_{m["run_id"]}')
         model_artifact.save()
 
 
@@ -118,10 +118,11 @@ def download_best_models(path):
     for run in runs:
         model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{run.id}:latest')
         if 'best' in model_artifact.aliases:
-            model_artifact.download(root=path)
+            direc= model_artifact.download(root=path)
+            print('DIREC', direc)
             with open(f'{path}/model_{run.id}.pkl', 'rb') as file:
                 best_models[run.id] = pickle.load(file)
-            #best_models[run.id] = joblib.load(f'{path}/model_{run.id}.pkl')
+    print('BEST', best_models)
     return best_models
 
 
@@ -130,7 +131,10 @@ def promote_model_to_registry(run, model):
     load_dotenv(find_dotenv())
     WANDB_PROJECT = os.environ["WANDB_PROJECT"]
     WANDB_ENTITY = os.environ["WANDB_ENTITY"]
-    model_artifact = run.use_artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
+    api = wandb.Api()
+    #model_artifact = run.use_artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
+    model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
+    print(f'REGISTRY model_{model["id"]}')
     model_artifact.link(f'{WANDB_ENTITY}/model-registry/model_{model["id"]}',
                         aliases=['staging'])
     wandb.log({'roc_auc': model['auc']})
