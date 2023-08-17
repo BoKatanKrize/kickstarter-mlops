@@ -1,6 +1,7 @@
 import os
 import wandb
-import joblib
+# import joblib
+import pickle
 from dotenv import find_dotenv, load_dotenv
 
 
@@ -118,7 +119,9 @@ def download_best_models(path):
         model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{run.id}:latest')
         if 'best' in model_artifact.aliases:
             model_artifact.download(root=path)
-            best_models[run.id] = joblib.load(f'{path}/model_{run.id}.pkl')
+            with open(f'{path}/model_{run.id}.pkl', 'rb') as file:
+                best_models[run.id] = pickle.load(file)
+            #best_models[run.id] = joblib.load(f'{path}/model_{run.id}.pkl')
     return best_models
 
 

@@ -20,8 +20,6 @@ def bucket_exists(bucket_name):
 def upload_to_bucket(client, bucket_name, info):
     client.put_object(Bucket=bucket_name, Key=f'{info["path_s3_out"]}/')
     for fname in info['fnames']:
-        print(f'{info["path_local_out"]}/{fname}')
-        print(f'{info["path_s3_out"]}/{fname}')
         client.upload_file(f'{info["path_local_out"]}/{fname}',
                            bucket_name,
                            f'{info["path_s3_out"]}/{fname}')
