@@ -9,7 +9,7 @@ import pandas as pd
 import wandb
 from bs4 import BeautifulSoup
 
-from config import gather_downloader
+from cli import gather_downloader
 from utils.aws_s3 import save_to_s3_bucket
 from utils.io import save_data
 from utils.wandb import init_wandb_run, log_wandb_artifact, \
@@ -86,8 +86,7 @@ def main(params):
     # ----------------------------------- #
     logger.info(f'Logging the raw data to Weights & Biases...')
     run = init_wandb_run(name_script='downloader',
-                         job_type='preprocessing',
-                         id_run='1st')
+                         job_type='preprocessing')
     log_wandb_artifact(run,
                        name_artifact=get_artifact_name(info_data['path_local_out']),
                        type_artifact='dataset',
@@ -109,7 +108,7 @@ def wrapper_poetry():
     #   timestamp + logger name + severity level + the actual log message
 
     # ------------------------------ #
-    # Load parameters from config.py #
+    # Load parameters from cli.py #
     # ------------------------------ #
     params = gather_downloader(standalone_mode=False)
 

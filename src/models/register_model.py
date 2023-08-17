@@ -2,12 +2,13 @@ import logging
 
 import wandb
 
-from config import gather_register_model
+from cli import gather_register_model
 from utils.wandb import init_wandb_run, download_wandb_artifact, \
                         get_artifact_name,  \
                         select_best_models_from_sweep, \
                         download_best_models, \
-                        promote_model_to_registry
+                        promote_model_to_registry, \
+                        log_wandb_artifact
 from utils.io import load_data, save_pipe
 from utils.aws_s3 import save_to_s3_bucket
 from .train import prepare_data
@@ -40,8 +41,7 @@ def main(params):
     info_pipe = dict(params["info_pipe"])
     # Initialize W&B run
     run = init_wandb_run(name_script='register_model',
-                         job_type='registry',
-                         id_run='5')
+                         job_type='registry')
     # Download dataset
     download_wandb_artifact(name_artifact=get_artifact_name(info_data['path_local_in']),
                             path_to_download=info_data['path_local_in'])
@@ -60,18 +60,25 @@ def main(params):
     best_model = evaluate(X, y, best_models)
 
     logger.info(f'Promoting best model to Model Registry...')
-    promote_model_to_registry(best_model)
+    run = promote_model_to_registry(run, best_model)
 
-    wandb.finish()
-
-    logger.info(f'Saving best model locally...')
+    logger.info(f'Saving Registered model locally...')
 
     info_pipe = save_pipe(best_model['model'],
                           info_pipe, suffix=best_model['id'])
 
-    logger.info(f'Saving best model in S3 Bucket (LocalStack)...')
+    logger.info(f'Saving Registered model in S3 Bucket (LocalStack)...')
     save_to_s3_bucket(params["s3_bucket_name"],
                       info_pipe=info_pipe)
+
+    logger.info(f'Logging Registered model to Weights & Biases...')
+    log_wandb_artifact(run,
+                       name_artifact=f"model_{best_model['id']}",
+                       type_artifact='model',
+                       bucket_name=params["s3_bucket_name"],
+                       path_to_log=info_pipe["path_s3_out"])
+
+    wandb.finish()
 
 
 def wrapper_poetry():
@@ -84,7 +91,7 @@ def wrapper_poetry():
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # ------------------------------ #
-    # Load parameters from config.py #
+    # Load parameters from cli.py #
     # ------------------------------ #
     params = gather_register_model(standalone_mode=False)
 

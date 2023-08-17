@@ -199,13 +199,3 @@ def gather_register_model(ctx, s3_bucket_name,
                           n_best):
     return ctx.params
 
-
-@click.command()
-@click.argument(
-    "s3_bucket_name",
-    type=str,
-    required=False,
-    default="kickstarter-bucket")
-@click.pass_context
-def gather_orchestrate_train(ctx, s3_bucket_name):
-    return ctx.params

@@ -1,4 +1,8 @@
-from config import gather_orchestrate_train
+# ** To be launched as flow deployment in Prefect Cloud **
+
+import os
+from dotenv import find_dotenv, load_dotenv
+
 from data.downloader import wrapper_poetry as downloader
 from data.cleaner import wrapper_poetry as cleaner
 from features.build_features import wrapper_poetry as build_features
@@ -8,21 +12,23 @@ from models.register_model import wrapper_poetry as register_model
 from prefect import flow, task, get_run_logger
 from prefect.task_runners import SequentialTaskRunner
 
+load_dotenv(find_dotenv())
+FLOW_NAME = os.environ["FLOW_NAME"]
 
 # ----- #
 # Tasks #
 # ----- #
-task_downloader = task(downloader, name = "Data Downloading")
-task_cleaner = task(cleaner, name = "Data Cleaning")
-task_build_features = task(build_features, name = "Feature Engineering")
-task_train = task(train, name = "Model Training")
-task_register_model = task(register_model, name = "Promoting Model to Registry")
+task_downloader = task(downloader, name = "data-downloading")
+task_cleaner = task(cleaner, name = "data-cleaning")
+task_build_features = task(build_features, name = "feature-engineering")
+task_train = task(train, name = "model-training")
+task_register_model = task(register_model, name = "model-registry")
 
 # ----- #
 # Flow  #
 # ----- #
 @flow(
-      name="Data Preprocessing, Model Training and ",
+      name=f"{FLOW_NAME}",
       task_runner=SequentialTaskRunner()
 )
 def train_flow():
@@ -40,21 +46,3 @@ def train_flow():
     task_train()
     logger.info("Promoting best model to Model Registry")
     task_register_model()
-
-# def main(params):
-# """Creates a flow deployment in Prefect Cloud for 'train_flow'"""
-#
-
-# def wrapper_poetry():
-#
-#     params = gather_orchestrate_train(standalone_mode=False)
-#
-#     #load_dotenv(find_dotenv())
-#
-#     train_flow()
-#
-#     #main(params)
-#
-#
-# if __name__ == '__main__':
-#     wrapper_poetry()

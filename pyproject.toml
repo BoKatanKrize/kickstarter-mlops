@@ -46,6 +46,23 @@ orchestrate = "orchestration.orchestrate_train:wrapper_poetry"
   cmd = "docker compose up -d"
   cwd = "./localstack/s3"
 
+  [tool.poe.tasks.setup-orchestration]
+  envfile = ".env"
+  sequence = [
+    { cmd = "prefect init --recipe git" },
+    { cmd = "prefect work-pool create --type process ${WORKPOOL_NAME}" },
+    { cmd = "prefect deploy ${FLOW_ENTRYPOINT} -n ${DEPLOY_NAME} -p ${WORKPOOL_NAME}" },
+    { shell = "prefect worker start --pool ${WORKPOOL_NAME}" }
+  ]
+  ignore_fail = "return_non_zero"
+
+  [tool.poe.tasks.run-orchestration]
+  envfile = ".env"
+  sequence = [
+     { ref = "launch-localstack-s3" },
+     { cmd = "prefect deployment run '${FLOW_NAME}/${DEPLOY_NAME}'" }
+  ]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

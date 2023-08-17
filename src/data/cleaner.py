@@ -2,7 +2,7 @@ import wandb
 import logging
 import warnings
 
-from config import gather_cleaner
+from cli import gather_cleaner
 from utils.aws_s3 import save_to_s3_bucket, load_from_s3_bucket
 from utils.pipelines import ColumnDropperTransformer, \
                             DropRowsWithSameIDTransformer, \
@@ -168,8 +168,7 @@ def main(params):
     # ------------------------------------------------ #
     logger.info(f'Logging the cleaned data & pipeline to Weights & Biases...')
     run = init_wandb_run(name_script='cleaner',
-                         job_type='preprocessing',
-                         id_run='2nd')
+                         job_type='preprocessing')
     # Data
     log_wandb_artifact(run,
                        name_artifact=get_artifact_name(info_data['path_local_out']),
@@ -196,7 +195,7 @@ def wrapper_poetry():
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # ------------------------------ #
-    # Load parameters from config.py #
+    # Load parameters from cli.py #
     # ------------------------------ #
     params = gather_cleaner(standalone_mode=False)
 

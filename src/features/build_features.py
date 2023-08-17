@@ -2,7 +2,7 @@ import wandb
 import logging
 import warnings
 
-from config import gather_build_features
+from cli import gather_build_features
 from utils.aws_s3 import save_to_s3_bucket, load_from_s3_bucket
 from utils.io import load_data, save_data, save_pipe
 from utils.pipelines import calculate_name_length, \
@@ -179,8 +179,7 @@ def main(params):
     # ---------------------------------------------------- #
     logger.info(f'Logging processed data and pipeline to Weights & Biases...')
     run = init_wandb_run(name_script='build_features',
-                         job_type='preprocessing',
-                         id_run='3rd')
+                         job_type='preprocessing')
     # Data
     log_wandb_artifact(run,
                        name_artifact=get_artifact_name(info_data['path_local_out']),
@@ -207,7 +206,7 @@ def wrapper_poetry():
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # ------------------------------ #
-    # Load parameters from config.py #
+    # Load parameters from cli.py #
     # ------------------------------ #
     params = gather_build_features(standalone_mode=False)
 

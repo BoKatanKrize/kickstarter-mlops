@@ -4,7 +4,7 @@ import joblib
 from dotenv import find_dotenv, load_dotenv
 
 
-def init_wandb_run(name_script, job_type, group=None, id_run=None):
+def init_wandb_run(name_script, job_type, group=None, id_run=None, resume=None):
     """Setting up Weights & Biases for Tracking and Registry"""
     load_dotenv(find_dotenv())
     WANDB_API_KEY = os.environ["WANDB_API_KEY"]
@@ -16,7 +16,8 @@ def init_wandb_run(name_script, job_type, group=None, id_run=None):
                      group=group,
                      name=name_script,
                      job_type=job_type,
-                     id=id_run)
+                     id=id_run,
+                     resume=resume)
     return run
 
 
@@ -121,13 +122,13 @@ def download_best_models(path):
     return best_models
 
 
-def promote_model_to_registry(model):
+def promote_model_to_registry(run, model):
 
     load_dotenv(find_dotenv())
     WANDB_PROJECT = os.environ["WANDB_PROJECT"]
     WANDB_ENTITY = os.environ["WANDB_ENTITY"]
-    api = wandb.Api()
-    model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
+    model_artifact = run.use_artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
     model_artifact.link(f'{WANDB_ENTITY}/model-registry/model_{model["id"]}',
                         aliases=['staging'])
     wandb.log({'roc_auc': model['auc']})
+    return run

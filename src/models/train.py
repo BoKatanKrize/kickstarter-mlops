@@ -4,7 +4,7 @@ import logging
 from functools import partial
 import dotenv
 
-from config import gather_train
+from cli import gather_train
 from utils.wandb import init_wandb_run, download_wandb_artifact, \
                         configure_sweep, \
                         run_sweep, log_wandb_artifact, \
@@ -39,7 +39,7 @@ def load_yaml(yaml_file):
     return sweep_config
 
 
-def train_single_sweep(X, y, info_pipe, seed):
+def train_single_sweep(X, y, info_pipe, s3_bucket, seed):
 
     global counter
     with init_wandb_run(name_script='sweep', job_type='training', group='sweeps') as run:
@@ -117,13 +117,21 @@ def train_single_sweep(X, y, info_pipe, seed):
         # Save model from current sweep locally
         info_pipe = save_pipe(model, info_pipe, suffix=run.id)
 
-        # Save the model to W&B
+        # Save current model to S3 Bucket
         model_name = f'{info_pipe["prefix_name"]}_{run.id}'
+        info_tmp = {'fnames': [f'{model_name}.pkl'],
+                    'path_local_out': info_pipe["path_local_out"],
+                    'path_s3_out': info_pipe["path_s3_out"]
+                    }
+        save_to_s3_bucket(s3_bucket,
+                          info_pipe=info_tmp)
+
+        # Save the model to W&B
         log_wandb_artifact(run,
                            name_artifact=model_name,
                            type_artifact='model',
-                           file_name=f'{model_name}.pkl',
-                           path_to_log=info_pipe["path_local_out"])
+                           bucket_name=s3_bucket,
+                           path_to_log=info_pipe["path_s3_out"])
 
         run.finish()
 
@@ -156,15 +164,12 @@ def main(params):
     logger.info(f'Running W&B Sweeps (comparing XGBoost vs LightGBM)...')
     target_function = partial(train_single_sweep,
                               X=X, y=y, info_pipe=info_pipe,
+                              s3_bucket = params["s3_bucket_name"],
                               seed=params['seed'])
     run_sweep(sweep_id, target_function=target_function, n_sweeps=params['n_sweeps'])
 
     # Store sweep_id in .ENV to be used later (no easy way to access it otherwise)
     dotenv.set_key(dotenv.find_dotenv(), "WANDB_SWEEP_ID", sweep_id)
-
-    logger.info(f'Saving trained models in S3 Bucket (LocalStack)...')
-    save_to_s3_bucket(params["s3_bucket_name"],
-                      info_pipe=info_pipe)
 
 
 def wrapper_poetry():
@@ -177,7 +182,7 @@ def wrapper_poetry():
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
     # ------------------------------ #
-    # Load parameters from config.py #
+    # Load parameters from cli.py #
     # ------------------------------ #
     params = gather_train(standalone_mode=False)
 
