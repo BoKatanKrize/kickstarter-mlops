@@ -38,7 +38,6 @@ cleaner = "data.cleaner:wrapper_poetry"
 build_features = "features.build_features:wrapper_poetry"
 train = "models.train:wrapper_poetry"
 register_model = "models.register_model:wrapper_poetry"
-orchestrate = "orchestration.orchestrate_train:wrapper_poetry"
 
 [tool.poe.tasks]
 

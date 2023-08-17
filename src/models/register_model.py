@@ -26,7 +26,6 @@ def evaluate(X, y, models):
             best_auc = roc_auc
             best_key = key
             best_model = model
-    print({'id': best_key, 'model': best_model, 'auc': best_auc})
     return {'id': best_key, 'model': best_model, 'auc': best_auc}
 
 
@@ -64,7 +63,6 @@ def main(params):
     run = promote_model_to_registry(run, best_model)
 
     logger.info(f'Saving Registered model locally...')
-
     info_pipe = save_pipe(best_model['model'],
                           info_pipe, suffix=best_model['id'])
 
@@ -72,12 +70,12 @@ def main(params):
     save_to_s3_bucket(params["s3_bucket_name"],
                       info_pipe=info_pipe)
 
-    logger.info(f'Logging Registered model to Weights & Biases...')
-    log_wandb_artifact(run,
-                       name_artifact=f"model_{best_model['id']}",
-                       type_artifact='model',
-                       bucket_name=params["s3_bucket_name"],
-                       path_to_log=info_pipe["path_s3_out"])
+    # logger.info(f'Logging Registered model to Weights & Biases...')
+    # log_wandb_artifact(run,
+    #                    name_artifact=f"model_{best_model['id']}",
+    #                    type_artifact='model',
+    #                    bucket_name=params["s3_bucket_name"],
+    #                    path_to_log=info_pipe["path_s3_out"])
 
     wandb.finish()
 
