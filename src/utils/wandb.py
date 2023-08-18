@@ -22,14 +22,14 @@ def init_wandb_run(name_script, job_type, group=None, id_run=None, resume=None):
 
 
 def log_wandb_artifact(run, name_artifact, type_artifact,
-                       bucket_name=None, file_name=None, path_to_log=None):
-    """Log an object stored locally or in S3 bucket as W&B artifact (only metadata)"""
+                       bucket_name, path_to_log, name_file=None):
+    """Log an object stored in S3 bucket as W&B artifact (only metadata)"""
     load_dotenv(find_dotenv())  # Load from .env -> AWS_ENDPOINT_URL
     artifact = wandb.Artifact(name=name_artifact, type=type_artifact)
-    if bucket_name is not None:  # S3 bucket
-        artifact.add_reference(f's3://{bucket_name}/{path_to_log}') # folder location
-    else:                        # Local
-        artifact.add_file(f'{path_to_log}/{file_name}')
+    if name_file is not None:
+        artifact.add_reference(f's3://{bucket_name}/{path_to_log}/{name_file}')
+    else:
+        artifact.add_reference(f's3://{bucket_name}/{path_to_log}')
     run.log_artifact(artifact)
 
 
@@ -117,19 +117,18 @@ def download_best_models(path):
     for run in runs:
         model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{run.id}:latest')
         if 'best' in model_artifact.aliases:
-            direc= model_artifact.download(root=path)
+            model_artifact.download(root=path)
             with open(f'{path}/model_{run.id}.pkl', 'rb') as file:
                 best_models[run.id] = pickle.load(file)
     return best_models
 
 
-def promote_model_to_registry(run, model):
+def promote_model_to_registry(model):
 
     load_dotenv(find_dotenv())
     WANDB_PROJECT = os.environ["WANDB_PROJECT"]
     WANDB_ENTITY = os.environ["WANDB_ENTITY"]
-    model_artifact = run.use_artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
+    api = wandb.Api()
+    model_artifact = api.artifact(f'{WANDB_ENTITY}/{WANDB_PROJECT}/model_{model["id"]}:best')
     model_artifact.link(f'{WANDB_ENTITY}/model-registry/model_{model["id"]}',
                         aliases=['staging'])
-    wandb.log({'roc_auc': model['auc']})
-    return run

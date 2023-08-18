@@ -131,7 +131,8 @@ def train_single_sweep(X, y, info_pipe, s3_bucket, seed):
                            name_artifact=model_name,
                            type_artifact='model',
                            bucket_name=s3_bucket,
-                           path_to_log=info_pipe["path_s3_out"])
+                           path_to_log=info_pipe["path_s3_out"],
+                           name_file=f'{model_name}.pkl')
 
         run.finish()
 

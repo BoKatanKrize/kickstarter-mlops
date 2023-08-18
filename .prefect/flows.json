@@ -1,3 +1,0 @@
-{
-  "experiment-tracking-and-registry": "src/orchestration/orchestrate_train.py:train_flow"
-}

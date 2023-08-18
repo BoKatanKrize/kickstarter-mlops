@@ -1,14 +1,15 @@
+import os
 import logging
 
 import wandb
+from dotenv import find_dotenv, load_dotenv
 
 from cli import gather_register_model
-from utils.wandb import init_wandb_run, download_wandb_artifact, \
+from utils.wandb import download_wandb_artifact, \
                         get_artifact_name,  \
                         select_best_models_from_sweep, \
                         download_best_models, \
-                        promote_model_to_registry, \
-                        log_wandb_artifact
+                        promote_model_to_registry
 from utils.io import load_data, save_pipe
 from utils.aws_s3 import save_to_s3_bucket
 from .train import prepare_data
@@ -18,10 +19,18 @@ from sklearn.metrics import roc_auc_score
 
 def evaluate(X, y, models):
     """Evaluate trained models on the test set"""
+    load_dotenv(find_dotenv())
+    WANDB_PROJECT = os.environ["WANDB_PROJECT"]
+    WANDB_ENTITY = os.environ["WANDB_ENTITY"]
+    api = wandb.Api()
     best_auc = 0.0
     for key, model in models.items():
         y_proba = model.predict_proba(X['test'])
         roc_auc = roc_auc_score(y['test'], y_proba[:, 1])
+        # Add the metric AUC (test) to the runs associated with best models
+        run = api.run(f"{WANDB_ENTITY}/{WANDB_PROJECT}/{key}")
+        run.summary["roc_auc_test"] = roc_auc
+        run.summary.update()
         if roc_auc > best_auc:
             best_auc = roc_auc
             best_key = key
@@ -39,9 +48,6 @@ def main(params):
     logger.info(f'Downloading processed train/val/test data from W&B...')
     info_data = dict(params["info_data"])
     info_pipe = dict(params["info_pipe"])
-    # Initialize W&B run
-    run = init_wandb_run(name_script='register_model',
-                         job_type='registry')
     # Download dataset
     download_wandb_artifact(name_artifact=get_artifact_name(info_data['path_local_in']),
                             path_to_download=info_data['path_local_in'])
@@ -60,7 +66,7 @@ def main(params):
     best_model = evaluate(X, y, best_models)
 
     logger.info(f'Promoting best model to Model Registry...')
-    run = promote_model_to_registry(run, best_model)
+    promote_model_to_registry(best_model)
 
     logger.info(f'Saving Registered model locally...')
     info_pipe = save_pipe(best_model['model'],
@@ -69,15 +75,6 @@ def main(params):
     logger.info(f'Saving Registered model in S3 Bucket (LocalStack)...')
     save_to_s3_bucket(params["s3_bucket_name"],
                       info_pipe=info_pipe)
-
-    # logger.info(f'Logging Registered model to Weights & Biases...')
-    # log_wandb_artifact(run,
-    #                    name_artifact=f"model_{best_model['id']}",
-    #                    type_artifact='model',
-    #                    bucket_name=params["s3_bucket_name"],
-    #                    path_to_log=info_pipe["path_s3_out"])
-
-    wandb.finish()
 
 
 def wrapper_poetry():
