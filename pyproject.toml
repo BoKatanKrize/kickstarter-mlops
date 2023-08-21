@@ -11,6 +11,7 @@ packages = [
     { include = "models", from = "src" },
     { include = "orchestration", from = "src" },
     { include = "utils", from = "src" },
+    { include = "deployment", from = "src" },
 ]
 
 
@@ -31,6 +32,7 @@ wandb = "^0.15.8"
 xgboost = "^1.7.6"
 lightgbm = "^4.0.0"
 prefect = "^2.11.3"
+flask = "^2.3.2"
 
 [tool.poetry.scripts]
 downloader = "data.downloader:wrapper_poetry"
@@ -42,8 +44,7 @@ register_model = "models.register_model:wrapper_poetry"
 [tool.poe.tasks]
 
   [tool.poe.tasks.launch-localstack-s3]
-  cmd = "docker compose up -d"
-  cwd = "./localstack/s3"
+  cmd = "docker compose up -d localstack"
 
   [tool.poe.tasks.setup-orchestration]
   envfile = ".env"
@@ -55,12 +56,19 @@ register_model = "models.register_model:wrapper_poetry"
   ]
   ignore_fail = "return_non_zero"
 
-  [tool.poe.tasks.run-orchestration]
+  [tool.poe.tasks.launch-orchestration]
   envfile = ".env"
   sequence = [
      { ref = "launch-localstack-s3" },
      { cmd = "prefect deployment run '${FLOW_NAME}/${DEPLOY_NAME}'" }
   ]
+
+  [tool.poe.tasks.launch-flask-app]
+  cmd = "docker compose up --build -d flask-app"
+
+  [tool.poe.tasks.predict-flask-app]
+  cmd = "poetry run python test.py"
+  cwd = "./src/deployment/web_service"
 
 [build-system]
 requires = ["poetry-core"]
