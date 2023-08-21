@@ -14,21 +14,21 @@
 
 ## 1. Context
 
-<div style="display: flex; align-items: center;">
-  <div style="flex: 10%; padding: 10px;">
-    <img src="images/kickstarter-logo.png" alt="Image Description">
-  </div>
+<div style="display: flex; flex-direction: column; align-items: center;">
+  <img src="images/kickstarter-logo.png" alt="Image Description" width="250" height="30">
   <div style="flex: 90%; padding: 10px;">
     <p>Kickstarter is a popular crowdfunding platform where creative minds 
-seek support for their projects. It hosts a wide variety of different 
-projects, spanning from technology startups to creative arts ventures 
-and social impact initiatives, among others. In Kickstarter, a project
-secures funds only if it reaches its predefined funding goal. Now, 
-there are numerous factors that influence the outcome of a project 
-(e.g., project category, funding goal, country, ...), making it feasible
-to develop a predictive model to determine a project's likelihood of success.</p>
+    seek support for their projects. It hosts a wide variety of different 
+    projects, spanning from technology startups to creative arts ventures 
+    and social impact initiatives, among others. In Kickstarter, a project
+    secures funds only if it reaches its predefined funding goal. Now, 
+    there are numerous factors that influence the outcome of a project 
+    (e.g., project category, funding goal, country, ...), making it feasible
+    to develop a predictive model to determine a project's likelihood of success.</p>
   </div>
 </div>
+
+
 
 ## 2. Goal
 
