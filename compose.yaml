@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack-s3
+    expose:
+      - "4566"
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DATA_DIR=/tmp/localstack/data
+    volumes:
+      - "localstack-vol:/tmp/localstack"
+
+  flask-app:
+    build:
+      context: ./src/deployment/web_service
+      dockerfile: Dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
+      target: runtime
+    container_name: flask-app
+    expose:
+      - "9696"
+    ports:
+      - "9696:9696"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_ENDPOINT_URL=http://localstack-s3:4566 # <-- set to the localstack container
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - WANDB_ENTITY=${WANDB_ENTITY}
+      - WANDB_PROJECT=${WANDB_PROJECT}
+      - WANDB_INTERIM_MODELS=${WANDB_INTERIM_MODELS}
+      - WANDB_PROCESSED_MODELS=${WANDB_PROCESSED_MODELS}
+      - WANDB_REGISTERED_MODELS=${WANDB_REGISTERED_MODELS}
+    command: "gunicorn --bind=0.0.0.0:9696 predict:app"
+
+volumes:
+  localstack-vol:
+
