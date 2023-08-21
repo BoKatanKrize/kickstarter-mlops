@@ -2,7 +2,7 @@ import os
 import logging
 
 import wandb
-from dotenv import find_dotenv, load_dotenv
+from dotenv import find_dotenv, load_dotenv, set_key
 
 from cli import gather_register_model
 from utils.wandb import download_wandb_artifact, \
@@ -67,6 +67,9 @@ def main(params):
 
     logger.info(f'Promoting best model to Model Registry...')
     promote_model_to_registry(best_model)
+    # Store registered model name in .ENV
+    set_key(find_dotenv(), "WANDB_REGISTERED_MODELS",
+            f'model_{best_model["id"]}')
 
     logger.info(f'Saving Registered model locally...')
     info_pipe = save_pipe(best_model['model'],

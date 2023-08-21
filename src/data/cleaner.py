@@ -1,6 +1,7 @@
 import wandb
 import logging
 import warnings
+import dotenv
 
 from cli import gather_cleaner
 from utils.aws_s3 import save_to_s3_bucket, load_from_s3_bucket
@@ -176,11 +177,14 @@ def main(params):
                        bucket_name=params["s3_bucket_name"],
                        path_to_log=info_data["path_s3_out"])
     # Pipeline
+    name_artifact = f"{get_artifact_name(info_pipe['path_local_out'])}_{run.id}"
     log_wandb_artifact(run,
-                       name_artifact=get_artifact_name(info_pipe['path_local_out']),
+                       name_artifact=name_artifact,
                        type_artifact='model',
                        bucket_name=params["s3_bucket_name"],
                        path_to_log=info_pipe["path_s3_out"])
+    # Store name_artifact in .ENV
+    dotenv.set_key(dotenv.find_dotenv(), "WANDB_INTERIM_MODELS", name_artifact)
 
     wandb.finish()
 
