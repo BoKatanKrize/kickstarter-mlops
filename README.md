@@ -6,7 +6,6 @@
 ![W&B](https://img.shields.io/badge/W%26B-black?style=for-the-badge&logo=weightsandbiases)
 ![Prefect](https://img.shields.io/badge/Prefect-white?style=for-the-badge&logo=Prefect&logoColor=blue)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-
 ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
 ![Jupyter Notebook](https://img.shields.io/badge/jupyter-%23FA0F00.svg?style=for-the-badge&logo=jupyter&logoColor=white)
 ![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
@@ -34,10 +33,74 @@
 
 The objective of this project is to put into practice the knowledge acquired 
 during the [mlops-zoomcamp](https://github.com/DataTalksClub/mlops-zoomcamp) 
-course (offered by [DataTalks.Club](https://datatalks.club/)) and constructing an MLOps pipeline to predict if a Kickstarter project
+course (offered by [DataTalks.Club](https://datatalks.club/)). We aim to build an MLOps pipeline to predict if a Kickstarter project
 will succeed or fail.
 
-## 3. Dataset
+## 3. Project Structure
+
+```bash
+├── cli.py                # Command-line interface for Poetry to interact with the project.
+├── compose.yaml          # Docker Compose file for LocalStack & Flask App services.
+├── data
+│   ├── interim               # (Intermediate) cleaned data storage directory.
+│   ├── processed             # (Final) featured engineered data storage directory.
+│   └── raw                   # (Original) raw data storage directory.
+│
+├── images                # Directory for storing project images.
+├── LICENSE               # Project license file.
+├── models
+│   ├── interim               # Cleaning pipeline storage directory.
+│   ├── processed             # Feature engineering pipeline storage directory.
+│   ├── registry              # Model registry storage directory.
+│   └── trained               # Trained models storage directory.
+│
+├── notebooks
+│   └── Kickstarter_Prototyping_and_EDA.ipynb  # Jupyter notebook for exploratory data analysis.
+│
+├── poetry.lock           # Lock file for Poetry package manager.
+├── pyproject.toml        # Project configuration file using Poetry.
+├── README.md             # Main project README file.
+├── sample.env            # Sample environment variable configuration file.
+└── src
+    ├── data
+    │   ├── __init__.py          # Initialization for data module.
+    │   ├── cleaner.py           # Data cleaning script.
+    │   └── downloader.py        # Data downloading script.
+    │
+    ├── deployment
+    │   ├── __init__.py           # Initialization for deployment module.
+    │   └── web_service
+    │       ├── __init__.py                      # Initialization for web service module.
+    │       ├── Dockerfile                       # Docker configuration for the web service.
+    │       ├── poetry.lock                      # Lock file for the web service.
+    │       ├── predict.py                       # Prediction script for the web service.
+    │       ├── pyproject.toml                   # Project configuration for the web service (Poetry).
+    │       ├── sample_kickstarter_project.json  # Sample input data for the web service.
+    │       └── test.py                          # Test script for the web service.
+    │
+    ├── features
+    │   ├── __init__.py           # Initialization for feature engineering module.
+    │   └── build_features.py     # Feature engineering script.
+    │
+    ├── models
+    │   ├── __init__.py           # Initialization for models module.
+    │   ├── register_model.py     # Script for model registry in W&B.
+    │   ├── sweep_config.yaml     # Configuration for hyperparameter tuning.
+    │   └── train.py              # Script for model training.
+    │
+    ├── orchestration
+    │   ├── __init__.py           # Initialization for orchestration module.
+    │   └── orchestrate_train.py  # Orchestration script for model training (Prefect flow).
+    │
+    └── utils
+        ├── __init__.py           # Initialization for utility module.
+        ├── aws_s3.py             # Utility for Amazon S3 operations.
+        ├── io.py                 # Utility for file I/O operations.
+        ├── pipelines.py          # Utility for data processing pipelines.
+        └── wandb.py              # Utility for W&B integration.
+```
+
+## 4. Dataset
 
 The latest available dataset is automatically downloaded from [webrobots.io](https://webrobots.io/kickstarter-datasets/).
 It contains data on projects hosted on Kickstarter from 2009 to 2023. The raw data contains 39 features (see Jupyter Notebook), but 
@@ -58,7 +121,7 @@ we have selected 11 final features to feed our ML model (we think these are the 
 | diff_main_category_goal (float)  | Difference current goal wrt median goal of the main category |
 | diff_sub_category_goal (float)   | Difference current goal wrt median goal of the sub-category  |
 
-## 4. Prerequisites
+## 5. Prerequisites
 
 <ol type="I">
   <li> <b><code>conda</code> (optional)</b> :   install <code>conda</code> on your system. </li>
@@ -71,16 +134,16 @@ we have selected 11 final features to feed our ML model (we think these are the 
 
 
 
-## 5. Setup
+## 6. Setup
 
 We will build everything on top of a baseline virtual env <code>(base)</code>. In our case it's provided by <code>conda</code>. 
 
-### 5.1. Clone the repo
+### 6.1. Clone the repo
 ```bash
 (base) $ git clone https://github.com/BoKatanKrize/kickstarter-mlops.git
 ```
 
-### 5.2. Set up the Project using <code>poetry</code>. 
+### 6.2. Set up the Project using <code>poetry</code>. 
 ```bash
 (base) $ pip install poetry
 ``` 
@@ -98,7 +161,7 @@ Finally, install Poe the Poet as a poetry plugin
 (base) $ poetry self add 'poethepoet[poetry_plugin]'
 ```
 
-### 5.3. Set up S3 bucket with <code>localstack</code>
+### 6.3. Set up S3 bucket with <code>localstack</code>
 1. Start <code>localstack</code> container 
 ```bash
 (base) $ docker compose up -d localstack
@@ -124,14 +187,14 @@ Finally, install Poe the Poet as a poetry plugin
    4. The configuration will be stored in <code>~/.aws/config</code>
    5. Create <code>.env</code> based on <code>sample.env</code>  
 
-### 5.4. Set up Weights & Biases
+### 6.4. Set up Weights & Biases
 1. Create a W&B account
 2. Create a project called <code>kickstarter-mlops</code>
 3. Save the following variables to <code>.env</code>:
    1. Your W&B API Key
    2. Your entity (user name)
    
-### 5.5. Set up Prefect Cloud
+### 6.5. Set up Prefect Cloud
 1. Create a prefect cloud account
 2. Create an API key and a workspace
    1. Save them to <code>.env</code> 
@@ -141,7 +204,7 @@ Finally, install Poe the Poet as a poetry plugin
     (base) $ prefect cloud login -k <your-api-key>
 ```
 
-## 6. Training
+## 7. Training
 
 One of the key advantages of using <code>poetry</code> is the streamlined management 
 of script executions without the need for a <code>Makefile</code>. Poetry takes care 
@@ -184,7 +247,7 @@ preserved for future reference. E.g., to check the trained models from W&B Sweep
     (base) $ aws s3 --endpoint-url http://localhost:4566 ls s3://kickstarter-bucket/models/trained/
 ```
 
-### 7. Orchestration
+### 8. Orchestration
 
 The previous training workflow also can be automatically executed by using a Prefect deployment
 
@@ -203,7 +266,7 @@ The previous training workflow also can be automatically executed by using a Pre
    - It runs the Prefect deployment + workpool + worker
    - Best ML model is saved in W&B Registry 
 
-### 8. Deployment as web-service
+### 9. Deployment as web-service
 
 We deploy the best model in W&B Registry as a web-service (in a docker container). Make sure
 that the S3 bucket from either direct training (sec. 6) or orchestration (sec. 7) is running. 
